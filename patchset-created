@@ -5,9 +5,13 @@ import click
 from github import Github, Auth
 
 from config import Config
+
 gh = Github(auth=Auth.Token(config.GITHUB_TOKEN))
 
-repo = gh.get_repo("lineageos-infra/gerrit-ci-test")
+buildkite = {
+    "LineageOS/www": "https://api.buildkite.com/v2/organizations/lineageos/pipelines/preview-www/builds",
+}
+
 
 @click.command()
 @click.option("--change")
@@ -22,7 +26,20 @@ repo = gh.get_repo("lineageos-infra/gerrit-ci-test")
 @click.option("--uploader-username")
 @click.option("--commit")
 @click.option("--patchset")
-def main(change, kind, change_url, change_owner, change_owner_username, project, branch, topic, uploader, uploader_username, commit, patchset):
+def main(
+    change,
+    kind,
+    change_url,
+    change_owner,
+    change_owner_username,
+    project,
+    branch,
+    topic,
+    uploader,
+    uploader_username,
+    commit,
+    patchset,
+):
     with open("/data/gerrit/review/logs/hook_logs", "a") as f:
         f.write(f"hook received: {' '.join(sys.argv)}\n")
     if kind == "NO_CHANGE" or kind == "NO_CODE_CHANGE":
@@ -33,6 +50,24 @@ def main(change, kind, change_url, change_owner, change_owner_username, project,
     # we want to trigger anything starting with the string `gerrit`
     filtered = [x for x in workflows if x.name.lower().startswith("gerrit")]
     for wf in filtered:
-        inputs = {"change": change, "gerrit-ref": f"refs/changes/{change_id[-2:]}/{change_id}/{patchset}", "ref": commit}
+        inputs = {
+            "change": change,
+            "gerrit-ref": f"refs/changes/{change_id[-2:]}/{change_id}/{patchset}",
+            "ref": commit,
+        }
         res = wf.create_dispatch(branch, inputs)
+
+    # previews launch buildkite jobs
+    if project in buildkite.keys():
+        data = {
+            "commit": commit,
+            "branch": branch,
+            "env": {
+                "CHANGE_NUMBER": change_url.split("/")[-1],
+                "CHANGE": change,
+            },
+        }
+        requests.post(buildkite[project], headers=config.BUILDKITE_HEADERS, json=data)
+
+
 main()
