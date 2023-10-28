@@ -9,7 +9,7 @@ from config import Config
 gh = Github(auth=Auth.Token(config.GITHUB_TOKEN))
 
 buildkite = {
-    "LineageOS/www": "https://api.buildkite.com/v2/organizations/lineageos/pipelines/preview-www/builds",
+    "LineageOS/www": "https://api.buildkite.com/v2/organizations/lineageos/pipelines/www-preview/builds",
 }
 
 
