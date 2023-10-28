@@ -6,7 +6,7 @@ from github import Github, Auth
 
 from config import Config
 
-gh = Github(auth=Auth.Token(config.GITHUB_TOKEN))
+gh = Github(auth=Auth.Token(Config.GITHUB_TOKEN))
 
 buildkite = {
     "LineageOS/www": "https://api.buildkite.com/v2/organizations/lineageos/pipelines/www-preview/builds",
@@ -67,7 +67,7 @@ def main(
                 "CHANGE": change,
             },
         }
-        requests.post(buildkite[project], headers=config.BUILDKITE_HEADERS, json=data)
+        requests.post(buildkite[project], headers=Config.BUILDKITE_HEADERS, json=data)
 
 
 main()
