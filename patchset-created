@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+import click
+
+from github import Github, Auth
+
+from config import Config
+gh = Github(auth=Auth.Token(config.GITHUB_TOKEN))
+
+repo = gh.get_repo("lineageos-infra/gerrit-ci-test")
+
+@click.command()
+@click.option("--change")
+@click.option("--kind")
+@click.option("--change-url")
+@click.option("--change-owner")
+@click.option("--change-owner-username")
+@click.option("--project")
+@click.option("--branch")
+@click.option("--topic")
+@click.option("--uploader")
+@click.option("--uploader-username")
+@click.option("--commit")
+@click.option("--patchset")
+def main(change, kind, change_url, change_owner, change_owner_username, project, branch, topic, uploader, uploader_username, commit, patchset):
+    if kind == "NO_CHANGE" or kind == "NO_CODE_CHANGE":
+        return
+    change_id = change_url.split("/")[-1]
+    repo = gh.get_repo(project)
+    workflows = repo.get_workflows()
+    # we want to trigger anything starting with the string `gerrit`
+    filtered = [x for x in workflows if x.name.lower().startswith("gerrit")]
+    for wf in filtered:
+        wf.create_dispatch(branch, {"gerrit-ref": f"refs/changes/{change_id[-2:]}/{change_id}/{patchset}", "ref": commit})
+main()
