@@ -11,6 +11,7 @@ gh = Github(auth=Auth.Token(Config.GITHUB_TOKEN))
 
 buildkite = {
     "LineageOS/www": "https://api.buildkite.com/v2/organizations/lineageos/pipelines/www-preview/builds",
+    "LineageOS/lineage_wiki": "https://api.buildkite.com/v2/organizations/lineageos/pipelines/wiki-preview/builds",
 }
 
 
